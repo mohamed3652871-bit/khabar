@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import '../../../../../core/utils/app_assets.dart';
 import '../../../../../core/utils/app_colors.dart';
+import '../../../data/models/news_model.dart';
 
 class NewsSlider extends StatefulWidget {
-  const NewsSlider({super.key});
+  const NewsSlider({super.key, required this.articles});
+  final List<ArticleModel> articles;
 
   @override
   State<NewsSlider> createState() => _NewsSliderState();
@@ -23,6 +24,11 @@ class _NewsSliderState extends State<NewsSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final sliderItems = widget.articles.take(5).toList();
+    if (sliderItems.isEmpty) {
+      return SizedBox(height: 274.h + 15.h + 16.h);
+    }
+
     return Column(
       children: [
         SizedBox(
@@ -34,8 +40,9 @@ class _NewsSliderState extends State<NewsSlider> {
                 _currentPage = index;
               });
             },
-            itemCount: 3,
+            itemCount: sliderItems.length,
             itemBuilder: (context, index) {
+              final article = sliderItems[index];
               return Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20.w),
                 child: ClipRRect(
@@ -43,17 +50,31 @@ class _NewsSliderState extends State<NewsSlider> {
                   child: Stack(
                     alignment: Alignment.bottomCenter,
                     children: [
-                      Image(
-                        image: AssetImage(AppAssets.article),
-                        fit: BoxFit.cover,
-                        width: double.infinity,
-                        height: double.infinity,
-                      ),
+                      // Image
+                      article.urlToImage != null
+                          ? Image.network(
+                              article.urlToImage!,
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: double.infinity,
+                              errorBuilder: (_, __, ___) => Container(
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.image, size: 64),
+                              ),
+                            )
+                          : Container(
+                              color: Colors.grey[300],
+                              child: const Icon(Icons.image, size: 64),
+                            ),
+                      // Caption bar
                       Container(
                         width: double.infinity,
                         height: 66.h,
-                        padding: EdgeInsets.only(left: 14.w,right: 7.w,top: 9.h),
-                        decoration: BoxDecoration(color: AppColors.blackShade),
+                        padding: EdgeInsets.only(
+                          left: 14.w, right: 7.w, top: 9.h,
+                        ),
+                        decoration:
+                            BoxDecoration(color: AppColors.blackShade),
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -61,8 +82,9 @@ class _NewsSliderState extends State<NewsSlider> {
                             SizedBox(
                               width: 255.w,
                               child: Text(
-                                overflow: TextOverflow.visible,
-                                r"Experience the Serenity of Japan's Traditional Countryside",
+                                article.title ?? '',
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 2,
                                 style: TextStyle(
                                   color: AppColors.appWhite,
                                   fontSize: 16.sp,
@@ -71,13 +93,13 @@ class _NewsSliderState extends State<NewsSlider> {
                               ),
                             ),
                             Padding(
-                              padding: const EdgeInsets.only( top:4),
+                              padding: const EdgeInsets.only(top: 4),
                               child: Text(
+                                article.author ?? '',
                                 softWrap: true,
-                                'Luc Olinga',
                                 style: TextStyle(
                                   color: Colors.white,
-                                  fontSize: 14.sp,
+                                  fontSize: 12.sp,
                                   fontWeight: FontWeight.w400,
                                 ),
                               ),
@@ -97,7 +119,7 @@ class _NewsSliderState extends State<NewsSlider> {
 
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(3, (index) {
+          children: List.generate(sliderItems.length, (index) {
             return GestureDetector(
               onTap: () {
                 _pageController.animateToPage(
@@ -109,10 +131,9 @@ class _NewsSliderState extends State<NewsSlider> {
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 margin: EdgeInsets.symmetric(horizontal: 3.w),
-                width: _currentPage == index
-                    ? 9.w:8.w,
-                height: _currentPage == index
-                    ? 9.h:8.h,                decoration: BoxDecoration(
+                width: _currentPage == index ? 9.w : 8.w,
+                height: _currentPage == index ? 9.h : 8.h,
+                decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(100),
                   color: _currentPage == index
                       ? AppColors.buttonBlue

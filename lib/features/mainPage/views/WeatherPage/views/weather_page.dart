@@ -1,20 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../../core/utils/app_icons.dart';
+import '../cubits/weather_cubit.dart';
+import '../cubits/weather_state.dart';
 
-
-
-class WeatherPage extends StatefulWidget {
-  const WeatherPage({super.key});
-
-  @override
-  State<WeatherPage> createState() => _WeatherPageState();
-}
-
-class _WeatherPageState extends State<WeatherPage> {
+class WeatherPage extends StatelessWidget {
+  const WeatherPage({super.key, this.latLng});
+  final LatLng? latLng;
 
   @override
   Widget build(BuildContext context) {
@@ -23,38 +20,87 @@ class _WeatherPageState extends State<WeatherPage> {
       statusBarIconBrightness: Brightness.dark,
     ));
 
-    return Scaffold(
-      backgroundColor: AppColors.bgPrimary,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            physics: const BouncingScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildWeatherHeader(),
-                SizedBox(height: 29.h),
-                _buildLocationRow(),
-                SizedBox(height: 8.h),
-                _buildTemperatureRow(),
-                SizedBox(height: 8.h),
-                _buildConditionText(),
-                SizedBox(height: 45.h),
-                _buildDetailGrid(),
-                SizedBox(height: 82.h),
-                _buildChangeLocationButton(),
-              ],
-            ),
-          ),
+    return BlocBuilder<WeatherCubit, WeatherState>(
+      builder: (context, state) {
+        final cubit = WeatherCubit.get(context);
+        final weather = cubit.weather;
 
-        ],
-      ),
+        return Scaffold(
+          backgroundColor: AppColors.bgPrimary,
+          body: state is WeatherLoadingState
+              ? const Center(child: CircularProgressIndicator())
+              : state is WeatherErrorState
+                  ? Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24.r),
+                        child: Text(
+                          cubit.errorMessage ?? 'Something went wrong',
+                          style: TextStyle(
+                            fontSize: 16.sp,
+                            color: Colors.red,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    )
+                  : Stack(
+                      children: [
+                        SingleChildScrollView(
+                          physics: const BouncingScrollPhysics(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              _buildWeatherHeader(
+                                weatherMain: weather?.weatherMain ?? '—',
+                                temp: weather?.temp.round().toString() ?? '—',
+                              ),
+                              SizedBox(height: 29.h),
+                              _buildLocationRow(
+                                city: weather?.cityName ?? '—',
+                                country: weather?.country ?? '—',
+                              ),
+                              SizedBox(height: 8.h),
+                              _buildTemperatureRow(
+                                temp: weather?.temp.round().toString() ?? '—',
+                                icon: weather?.weatherIcon,
+                              ),
+                              SizedBox(height: 8.h),
+                              _buildConditionText(
+                                main: weather?.weatherMain ?? '—',
+                                description: weather?.weatherDescription ?? '—',
+                                feelsLike:
+                                    weather?.feelsLike.round().toString() ??
+                                        '—',
+                              ),
+                              SizedBox(height: 45.h),
+                              _buildDetailGrid(
+                                humidity: weather?.humidity.toString() ?? '—',
+                                pressure: weather?.pressure.toString() ?? '—',
+                                feelsLike:
+                                    weather?.feelsLike.round().toString() ??
+                                        '—',
+                                tempF: weather != null
+                                    ? ((weather.temp * 9 / 5) + 32)
+                                        .round()
+                                        .toString()
+                                    : '—',
+                              ),
+                              SizedBox(height: 82.h),
+                              _buildChangeLocationButton(context),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+        );
+      },
     );
   }
 
-
-
-  Widget _buildWeatherHeader() {
+  Widget _buildWeatherHeader({
+    required String weatherMain,
+    required String temp,
+  }) {
     return Container(
       width: double.infinity,
       height: 142.h,
@@ -70,7 +116,7 @@ class _WeatherPageState extends State<WeatherPage> {
               SizedBox(
                 width: 138.w,
                 child: Text(
-                  'Good Morning, Ahmed Saber',
+                  'Good Morning',
                   style: TextStyle(
                     fontFamily: 'Merriweather',
                     fontWeight: FontWeight.w400,
@@ -83,7 +129,7 @@ class _WeatherPageState extends State<WeatherPage> {
                 ),
               ),
               Text(
-                'Sun 9 April, 2023',
+                _formattedDate(),
                 style: TextStyle(
                   fontFamily: 'Inter',
                   fontWeight: FontWeight.w600,
@@ -96,17 +142,13 @@ class _WeatherPageState extends State<WeatherPage> {
           ),
           Row(
             children: [
-
-              Text(
-                '☀️',
-                style: TextStyle(fontSize: 20.sp),
-              ),
+              Text('☀️', style: TextStyle(fontSize: 20.sp)),
               SizedBox(width: 8.w),
               RichText(
                 text: TextSpan(
                   children: [
                     TextSpan(
-                      text: 'Sunny 32',
+                      text: '$weatherMain $temp',
                       style: TextStyle(
                         fontFamily: 'Merriweather',
                         fontWeight: FontWeight.w700,
@@ -146,11 +188,11 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
-  Widget _buildLocationRow() {
+  Widget _buildLocationRow({required String city, required String country}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 32.w),
       child: Text(
-        'Cairo - EG',
+        '$city - $country',
         style: TextStyle(
           fontFamily: 'Inter',
           fontWeight: FontWeight.w500,
@@ -164,14 +206,14 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
-  Widget _buildTemperatureRow() {
+  Widget _buildTemperatureRow({required String temp, String? icon}) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 32.w),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Text(
-            '27',
+            temp,
             style: TextStyle(
               fontFamily: 'Inter',
               fontWeight: FontWeight.w700,
@@ -181,27 +223,35 @@ class _WeatherPageState extends State<WeatherPage> {
             ),
           ),
           const Spacer(),
-          Image.network(
-            'https://www.figma.com/api/mcp/asset/6e3a8412-e07d-4648-9a25-782d2dbeff1e',
-            width: 100.w,
-            height: 100.h,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => AppIcon(icon: AppIcons.weatherSun
-            ,size: 76.r,),
-          ),
+          icon != null
+              ? Image.network(
+                  'https://openweathermap.org/img/wn/$icon@2x.png',
+                  width: 100.w,
+                  height: 100.h,
+                  fit: BoxFit.contain,
+                  errorBuilder: (_, __, ___) => AppIcon(
+                    icon: AppIcons.weatherSun,
+                    size: 76.r,
+                  ),
+                )
+              : AppIcon(icon: AppIcons.weatherSun, size: 76.r),
         ],
       ),
     );
   }
 
-  Widget _buildConditionText() {
+  Widget _buildConditionText({
+    required String main,
+    required String description,
+    required String feelsLike,
+  }) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 32.w),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Clear - Clear Sky',
+            '$main - ${_capitalize(description)}',
             style: TextStyle(
               fontFamily: 'Inter',
               fontWeight: FontWeight.w500,
@@ -213,7 +263,7 @@ class _WeatherPageState extends State<WeatherPage> {
             maxLines: 1,
           ),
           Text(
-            'Feels like 28',
+            'Feels like $feelsLike°C',
             style: TextStyle(
               fontFamily: 'Inter',
               fontWeight: FontWeight.w600,
@@ -228,34 +278,31 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
-  Widget _buildDetailGrid() {
+  Widget _buildDetailGrid({
+    required String tempF,
+    required String pressure,
+    required String feelsLike,
+    required String humidity,
+  }) {
     final items = [
       _DetailItem(
-        networkIconUrl:
-            'https://www.figma.com/api/mcp/asset/249c3d92-2d72-4a41-9f72-250f0ff8c83e',
         fallbackIcon: Icons.thermostat,
-        value: '72°',
+        value: '$tempF°F',
         label: 'Fahrenheit',
       ),
       _DetailItem(
-        networkIconUrl:
-            'https://www.figma.com/api/mcp/asset/baed359b-20f4-4db5-bf8e-cf3a4c0407aa',
         fallbackIcon: Icons.air,
-        value: '134 mp/h',
+        value: '$pressure hPa',
         label: 'Pressure',
       ),
       _DetailItem(
-        networkIconUrl:
-            'https://www.figma.com/api/mcp/asset/6e3a8412-e07d-4648-9a25-782d2dbeff1e',
         fallbackIcon: Icons.wb_sunny_outlined,
-        value: '0.2',
-        label: 'UV Index',
+        value: '$feelsLike°C',
+        label: 'Feels Like',
       ),
       _DetailItem(
-        networkIconUrl:
-            'https://www.figma.com/api/mcp/asset/f6d96849-827c-4174-af92-6b3741d86b3f',
         fallbackIcon: Icons.water_drop_outlined,
-        value: '48%',
+        value: '$humidity%',
         label: 'Humidity',
       ),
     ];
@@ -282,10 +329,7 @@ class _WeatherPageState extends State<WeatherPage> {
         gradient: const LinearGradient(
           begin: Alignment.topRight,
           end: Alignment.centerLeft,
-          colors: [
-            Color(0xFFFFFFFF),
-            Color(0x00FFFFFF),
-          ],
+          colors: [Color(0xFFFFFFFF), Color(0x00FFFFFF)],
         ),
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
@@ -301,17 +345,7 @@ class _WeatherPageState extends State<WeatherPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.network(
-            item.networkIconUrl,
-            width: 42.w,
-            height: 42.h,
-            fit: BoxFit.contain,
-            errorBuilder: (_, __, ___) => Icon(
-              item.fallbackIcon,
-              size: 36.sp,
-              color: AppColors.brandBlue,
-            ),
-          ),
+          Icon(item.fallbackIcon, size: 36.sp, color: AppColors.brandBlue),
           SizedBox(width: 12.w),
           Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -347,17 +381,15 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
-
-  Widget _buildChangeLocationButton() {
+  Widget _buildChangeLocationButton(BuildContext context) {
     return Center(
       child: ElevatedButton.icon(
-        onPressed: () {},
+        onPressed: () => Navigator.pop(context),
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.brandBlue,
           foregroundColor: Colors.white,
-          padding: EdgeInsets.symmetric(
-            horizontal: 24.w, vertical: 16.h,
-          ),
+          padding:
+              EdgeInsets.symmetric(horizontal: 24.w, vertical: 16.h),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(128.r),
           ),
@@ -378,19 +410,32 @@ class _WeatherPageState extends State<WeatherPage> {
     );
   }
 
+  String _formattedDate() {
+    final now = DateTime.now();
+    const days = [
+      'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'
+    ];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}, ${now.year}';
+  }
+
+  String _capitalize(String s) {
+    if (s.isEmpty) return s;
+    return s[0].toUpperCase() + s.substring(1);
+  }
 }
 
 class _DetailItem {
-  final String networkIconUrl;
   final IconData fallbackIcon;
   final String value;
   final String label;
 
   const _DetailItem({
-    required this.networkIconUrl,
     required this.fallbackIcon,
     required this.value,
     required this.label,
   });
 }
-

@@ -1,28 +1,32 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:khabar/features/mainPage/views/homePage/views/view_articles.dart';
 
-import '../../../../../core/utils/app_assets.dart';
 import '../../../../../core/utils/app_colors.dart';
 import '../../../../articlePage/views/article_page.dart';
+import '../../../cubits/news_cubit.dart';
+import '../../../cubits/news_state.dart';
+import '../../../data/models/news_model.dart';
+import '../../../views/WeatherPage/cubits/weather_cubit.dart';
+import '../../../views/WeatherPage/cubits/weather_state.dart';
+import 'view_articles.dart';
 
-class HomeScreen extends StatefulWidget {
+class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
-}
-
-class _HomeScreenState extends State<HomeScreen> {
-  final String weatherState = 'Sunny';
-  final int temperature = 32;
-
-  @override
   Widget build(BuildContext context) {
+    // Read live weather summary from WeatherCubit
+    final weatherCubit = context.watch<WeatherCubit>();
+    final weatherState =
+        weatherCubit.weather?.weatherMain ?? '—';
+    final temperature = weatherCubit.weather?.temp.round();
+
     return Scaffold(
       backgroundColor: AppColors.appWhite,
       body: Column(
         children: [
+          // ── Header ──────────────────────────────────────────────
           Container(
             padding: EdgeInsets.only(
               top: 59.h,
@@ -41,7 +45,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       width: 138.w,
                       child: Text(
-                        'Good Morning, Mohamed Ahmed',
+                        'Good Morning',
                         style: TextStyle(
                           fontSize: 14.sp,
                           color: AppColors.textColor1,
@@ -52,7 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(
                       height: 24.w,
                       child: Text(
-                        'Sun 9 April, 2023',
+                        _formattedDate(),
                         style: TextStyle(
                           fontSize: 18.sp,
                           color: AppColors.textColorBlack,
@@ -62,10 +66,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   ],
                 ),
-                Spacer(),
+                const Spacer(),
                 Row(
                   children: [
-                    Icon(Icons.sunny, color: Colors.amber),
+                    const Icon(Icons.sunny, color: Colors.amber),
                     SizedBox(width: 8.w),
                     Text(
                       weatherState,
@@ -76,132 +80,203 @@ class _HomeScreenState extends State<HomeScreen> {
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    Text(' '),
-                    Text(
-                      '${temperature.toString()}°C',
-                      style: TextStyle(
-                        fontFamily: 'schibstedgrotesk',
-                        fontSize: 14.sp,
-                        color: AppColors.textColor1,
-                        fontWeight: FontWeight.w700,
+                    const Text(' '),
+                    if (temperature != null)
+                      Text(
+                        '$temperature°C',
+                        style: TextStyle(
+                          fontFamily: 'schibstedgrotesk',
+                          fontSize: 14.sp,
+                          color: AppColors.textColor1,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
                   ],
                 ),
               ],
             ),
           ),
 
+          // ── News Content ─────────────────────────────────────────
           Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(height: 24.h),
-                InkWell(
-                  child: NewsSlider(),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => ArticlePage()),
-                    );
-                  },
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 20.w),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'Most Popular',
-                        style: TextStyle(
-                          color: AppColors.textColorBlack,
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      TextButton(
-                        style: ButtonStyle(
-                          padding: WidgetStateProperty.all(EdgeInsets.all(12)),
-                        ),
-                        onPressed: () {},
-                        child: Text(
-                          'See More',
-                          style: TextStyle(
-                            color: AppColors.buttonBlue,
-                            fontSize: 16.sp,
-                            fontWeight: FontWeight.w600,
-                            fontFamily: 'SchibstedGrotesk',
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ), //See More
-                SizedBox(height: 13.h),
-                SizedBox(
-                  height: 313.h,
-                  child: ListView.separated(
-                    padding: EdgeInsets.symmetric(horizontal: 32.w),
-                    scrollDirection: Axis.horizontal,
-                    itemBuilder: (context, index) => SizedBox(
-                      width: 240.w,
-                      child: InkWell(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8.r),
-                              child: Image(
-                                image: AssetImage(AppAssets.imageA),
-                                fit: BoxFit.cover,
-                                height: 230.h,
-                                width: double.infinity,
-                              ),
+            child: BlocBuilder<NewsCubit, NewsState>(
+              builder: (context, state) {
+                final cubit = NewsCubit.get(context);
+
+                if (state is NewsLoadingState) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+
+                if (state is NewsErrorState) {
+                  return Center(
+                    child: Text(
+                      cubit.errorMessage ?? 'Failed to load news',
+                      style: TextStyle(color: Colors.red, fontSize: 14.sp),
+                    ),
+                  );
+                }
+
+                final articles = cubit.articles;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(height: 24.h),
+
+                    // Slider
+                    InkWell(
+                      onTap: articles.isNotEmpty
+                          ? () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => ArticlePage(
+                                    articleData: articles.first,
+                                  ),
+                                ),
+                              )
+                          : null,
+                      child: NewsSlider(articles: articles),
+                    ),
+
+                    // Most Popular header
+                    Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 20.w),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Most Popular',
+                            style: TextStyle(
+                              color: AppColors.textColorBlack,
+                              fontSize: 24.sp,
+                              fontWeight: FontWeight.w600,
                             ),
-                            Text(
-                              'The Pros and Cons of Remote Work',
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
+                          ),
+                          TextButton(
+                            style: ButtonStyle(
+                              padding: WidgetStateProperty.all(
+                                  EdgeInsets.all(12)),
+                            ),
+                            onPressed: () {},
+                            child: Text(
+                              'See More',
                               style: TextStyle(
-                                color: AppColors.textColorBlack,
-                                fontSize: 20.sp,
+                                color: AppColors.buttonBlue,
+                                fontSize: 16.sp,
                                 fontWeight: FontWeight.w600,
                                 fontFamily: 'SchibstedGrotesk',
                               ),
                             ),
-                            SizedBox(height: 5.h),
-                            Text(
-                              'Technology',
-                              style: TextStyle(
-                                color: AppColors.textColor1,
-                                fontSize: 14.sp,
-                                fontWeight: FontWeight.w400,
-                                fontFamily: 'SchibstedGrotesk',
-                              ),
-                            ),
-                          ],
-                        ),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => ArticlePage(),
-                            ),
-                          );
-                        },
+                          ),
+                        ],
                       ),
                     ),
-                    separatorBuilder: (context, index) => SizedBox(width: 16.w),
-                    itemCount: 5,
-                  ),
-                ), //List Bar
-                SizedBox(height: 9.h),
-                Spacer(),
-              ],
+
+                    SizedBox(height: 13.h),
+
+                    // Horizontal list
+                    SizedBox(
+                      height: 313.h,
+                      child: articles.isEmpty
+                          ? const Center(child: Text('No articles available'))
+                          : ListView.separated(
+                              padding:
+                                  EdgeInsets.symmetric(horizontal: 32.w),
+                              scrollDirection: Axis.horizontal,
+                              itemCount: articles.length,
+                              separatorBuilder: (_, __) =>
+                                  SizedBox(width: 16.w),
+                              itemBuilder: (context, index) {
+                                final article = articles[index];
+                                return SizedBox(
+                                  width: 240.w,
+                                  child: InkWell(
+                                    onTap: () => Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => ArticlePage(
+                                          articleData: article,
+                                        ),
+                                      ),
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius:
+                                              BorderRadius.circular(8.r),
+                                          child: article.urlToImage != null
+                                              ? Image.network(
+                                                  article.urlToImage!,
+                                                  fit: BoxFit.cover,
+                                                  height: 230.h,
+                                                  width: double.infinity,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Container(
+                                                        height: 230.h,
+                                                        color: Colors.grey[300],
+                                                        child: const Icon(
+                                                            Icons.image,
+                                                            size: 48),
+                                                      ),
+                                                )
+                                              : Container(
+                                                  height: 230.h,
+                                                  color: Colors.grey[300],
+                                                  child: const Icon(
+                                                      Icons.image, size: 48),
+                                                ),
+                                        ),
+                                        SizedBox(height: 8.h),
+                                        Text(
+                                          article.title ?? '',
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                          style: TextStyle(
+                                            color: AppColors.textColorBlack,
+                                            fontSize: 20.sp,
+                                            fontWeight: FontWeight.w600,
+                                            fontFamily: 'SchibstedGrotesk',
+                                          ),
+                                        ),
+                                        SizedBox(height: 5.h),
+                                        Text(
+                                          article.source?.name ?? '',
+                                          style: TextStyle(
+                                            color: AppColors.textColor1,
+                                            fontSize: 14.sp,
+                                            fontWeight: FontWeight.w400,
+                                            fontFamily: 'SchibstedGrotesk',
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                    ),
+
+                    SizedBox(height: 9.h),
+                    const Spacer(),
+                  ],
+                );
+              },
             ),
           ),
         ],
       ),
     );
+  }
+
+  String _formattedDate() {
+    final now = DateTime.now();
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const months = [
+      'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+      'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+    ];
+    return '${days[now.weekday - 1]} ${now.day} ${months[now.month - 1]}, ${now.year}';
   }
 }
