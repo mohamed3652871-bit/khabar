@@ -13,7 +13,7 @@ class NewsRepo {
     ),
   );
 
-  Future<Either<String, List<ArticleModel>>> fetchNews() async {
+  Future<Either<String, List<NewsArticleModel>>> fetchNews() async {
     try {
       final response = await _dio.get(
         EndPoints.everything,

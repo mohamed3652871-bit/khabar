@@ -13,6 +13,6 @@ abstract class EndPoints {
   // Weather API
   static const String weatherBaseUrl =
       'https://api.openweathermap.org/data/2.5/';
-  static const String weatherApiKey = '39ef56aa87e0f9d833e68cd911de959';
+  static const String weatherApiKey = '39ef56aa87e0f9d833e66cd9111de959';
   static const String weather = 'weather';
 }

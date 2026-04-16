@@ -6,7 +6,7 @@ import '../../../data/models/news_model.dart';
 
 class NewsSlider extends StatefulWidget {
   const NewsSlider({super.key, required this.articles});
-  final List<ArticleModel> articles;
+  final List<NewsArticleModel> articles;
 
   @override
   State<NewsSlider> createState() => _NewsSliderState();

@@ -9,7 +9,7 @@ import '../../../core/utils/app_icons.dart';
 
 class ArticlePage extends StatefulWidget {
   const ArticlePage({super.key, this.articleData});
-  final ArticleModel? articleData;
+  final NewsArticleModel? articleData;
 
   @override
   State<ArticlePage> createState() => _ArticlePageState();

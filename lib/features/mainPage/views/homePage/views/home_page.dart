@@ -182,7 +182,7 @@ class HomeScreen extends StatelessWidget {
                                   EdgeInsets.symmetric(horizontal: 32.w),
                               scrollDirection: Axis.horizontal,
                               itemCount: articles.length,
-                              separatorBuilder: (_, i) =>
+                              separatorBuilder: (_, __) =>
                                   SizedBox(width: 16.w),
                               itemBuilder: (context, index) {
                                 final article = articles[index];
@@ -210,7 +210,7 @@ class HomeScreen extends StatelessWidget {
                                                   fit: BoxFit.cover,
                                                   height: 230.h,
                                                   width: double.infinity,
-                                                  errorBuilder: (_, err, e) =>
+                                                  errorBuilder: (_, __, ___) =>
                                                       Container(
                                                         height: 230.h,
                                                         color: Colors.grey[300],

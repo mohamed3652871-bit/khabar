@@ -1,5 +1,6 @@
-import 'package:flutter/material.dart' show BuildContext;
+import 'package:flutter/material.dart' ;
 import 'package:flutter_bloc/flutter_bloc.dart';
+
 
 import '../data/models/news_model.dart';
 import '../data/repo/news_repo.dart';
@@ -10,7 +11,7 @@ class NewsCubit extends Cubit<NewsState> {
 
   static NewsCubit get(BuildContext context) => BlocProvider.of(context);
 
-  List<ArticleModel> articles = [];
+  List<NewsArticleModel> articles = [];
   String? errorMessage;
 
   Future<void> fetchNews() async {
