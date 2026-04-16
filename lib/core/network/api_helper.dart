@@ -39,7 +39,7 @@ class APIHelper {
                {
                  var result = await _dio.post(
                    EndPoints.apiToken,
-                   options: Options(headers: {'Authorization': 'Bearer ${await CacheHelper.getValue(CacheKeys.refreshToken)}'})
+                   options: Options(headers: {'Authorization': 'Bearer ${CacheHelper.getValue(CacheKeys.refreshToken)}'})
                  ) ;
 
                  Map<String, dynamic> accessData = result.data as Map<String, dynamic>;
