@@ -5,7 +5,13 @@ import '../../../../../core/network/end_points.dart';
 import 'weather_model.dart';
 
 class WeatherRepo {
-  static final Dio _dio = Dio(BaseOptions(baseUrl: EndPoints.weatherBaseUrl));
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: EndPoints.weatherBaseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
 
   Future<Either<String, WeatherModel>> fetchWeather({
     required double lat,

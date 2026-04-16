@@ -5,7 +5,13 @@ import '../../../../../core/network/end_points.dart';
 import '../models/news_model.dart';
 
 class NewsRepo {
-  static final Dio _dio = Dio(BaseOptions(baseUrl: EndPoints.newsBaseUrl));
+  static final Dio _dio = Dio(
+    BaseOptions(
+      baseUrl: EndPoints.newsBaseUrl,
+      connectTimeout: const Duration(seconds: 15),
+      receiveTimeout: const Duration(seconds: 15),
+    ),
+  );
 
   Future<Either<String, List<ArticleModel>>> fetchNews() async {
     try {

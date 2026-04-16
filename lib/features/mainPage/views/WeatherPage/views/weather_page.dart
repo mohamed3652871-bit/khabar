@@ -229,7 +229,7 @@ class WeatherPage extends StatelessWidget {
                   width: 100.w,
                   height: 100.h,
                   fit: BoxFit.contain,
-                  errorBuilder: (_, __, ___) => AppIcon(
+                  errorBuilder: (_, err, e) => AppIcon(
                     icon: AppIcons.weatherSun,
                     size: 76.r,
                   ),
@@ -334,7 +334,7 @@ class WeatherPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20.r),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
+            color: Colors.black.withValues(alpha: 0.05),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),

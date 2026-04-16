@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart' show BuildContext;
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../data/models/news_model.dart';
-import '../../data/repo/news_repo.dart';
+import '../data/models/news_model.dart';
+import '../data/repo/news_repo.dart';
 import 'news_state.dart';
 
 class NewsCubit extends Cubit<NewsState> {

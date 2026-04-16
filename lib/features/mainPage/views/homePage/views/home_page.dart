@@ -6,9 +6,7 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../../../articlePage/views/article_page.dart';
 import '../../../cubits/news_cubit.dart';
 import '../../../cubits/news_state.dart';
-import '../../../data/models/news_model.dart';
 import '../../../views/WeatherPage/cubits/weather_cubit.dart';
-import '../../../views/WeatherPage/cubits/weather_state.dart';
 import 'view_articles.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -184,7 +182,7 @@ class HomeScreen extends StatelessWidget {
                                   EdgeInsets.symmetric(horizontal: 32.w),
                               scrollDirection: Axis.horizontal,
                               itemCount: articles.length,
-                              separatorBuilder: (_, __) =>
+                              separatorBuilder: (_, i) =>
                                   SizedBox(width: 16.w),
                               itemBuilder: (context, index) {
                                 final article = articles[index];
@@ -212,7 +210,7 @@ class HomeScreen extends StatelessWidget {
                                                   fit: BoxFit.cover,
                                                   height: 230.h,
                                                   width: double.infinity,
-                                                  errorBuilder: (_, __, ___) =>
+                                                  errorBuilder: (_, err, e) =>
                                                       Container(
                                                         height: 230.h,
                                                         color: Colors.grey[300],

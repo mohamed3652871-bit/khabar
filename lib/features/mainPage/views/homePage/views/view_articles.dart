@@ -57,7 +57,7 @@ class _NewsSliderState extends State<NewsSlider> {
                               fit: BoxFit.cover,
                               width: double.infinity,
                               height: double.infinity,
-                              errorBuilder: (_, __, ___) => Container(
+                              errorBuilder: (_, err, e) => Container(
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.image, size: 64),
                               ),
