@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "802698525354",
+    "project_id": "nti-khabar",
+    "storage_bucket": "nti-khabar.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802698525354:android:bb67c867e9ecd15c622ed3",
+        "android_client_info": {
+          "package_name": "com.example.khabar"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCP84TeFL6cK0F-a5aXAmBuaI-xwYJXi6A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
