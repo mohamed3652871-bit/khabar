@@ -37,6 +37,8 @@ dependencies:
   shared_preferences:
   google_maps_flutter:
   flutter_bloc:
+  firebase_core: ^4.7.0
+  firebase_auth:
 
 
 

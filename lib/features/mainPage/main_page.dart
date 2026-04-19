@@ -12,8 +12,10 @@ import 'views/bookMarksPage/views/book_marks_page.dart';
 import 'views/homePage/views/home_page.dart';
 
 class MainPage extends StatefulWidget {
-  const MainPage({super.key, this.latLng});
+  const MainPage({super.key, this.latLng, this.userName});
   final LatLng? latLng;
+  final String? userName;
+
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -27,7 +29,9 @@ class _MainPageState extends State<MainPage> {
   void initState() {
     super.initState();
     pages = [
-      const HomeScreen(),
+       HomeScreen(
+        name: widget.userName ??'',
+      ),
       const ExplorePage(),
       const BookMarksPage(),
       WeatherPage(latLng: widget.latLng),

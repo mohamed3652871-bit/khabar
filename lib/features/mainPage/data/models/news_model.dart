@@ -1,27 +1,27 @@
-class FetchNewsResponseModel {
+class NewsResponseModel {
   String? status;
   int? totalResults;
   List<NewsArticleModel>? articles;
 
-  FetchNewsResponseModel({this.status, this.totalResults, this.articles});
+  NewsResponseModel({this.status, this.totalResults, this.articles});
 
-  FetchNewsResponseModel.fromJson(Map<String, dynamic> json) {
+  NewsResponseModel.fromJson(Map<String, dynamic> json) {
     status = json['status'];
     totalResults = json['totalResults'];
     if (json['articles'] != null) {
       articles = <NewsArticleModel>[];
       json['articles'].forEach((v) {
-        articles!.add(new NewsArticleModel.fromJson(v));
+        articles!.add(NewsArticleModel.fromJson(v));
       });
     }
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['status'] = this.status;
-    data['totalResults'] = this.totalResults;
-    if (this.articles != null) {
-      data['articles'] = this.articles!.map((v) => v.toJson()).toList();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['status'] = status;
+    data['totalResults'] = totalResults;
+    if (articles != null) {
+      data['articles'] = articles!.map((v) => v.toJson()).toList();
     }
     return data;
   }
@@ -49,7 +49,7 @@ class NewsArticleModel {
 
   NewsArticleModel.fromJson(Map<String, dynamic> json) {
     source =
-    json['source'] != null ? new SourceModel.fromJson(json['source']) : null;
+    json['source'] != null ? SourceModel.fromJson(json['source']) : null;
     author = json['author'];
     title = json['title'];
     description = json['description'];
@@ -60,17 +60,17 @@ class NewsArticleModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    if (this.source != null) {
-      data['source'] = this.source!.toJson();
+    final Map<String, dynamic> data = <String, dynamic>{};
+    if (source != null) {
+      data['source'] = source!.toJson();
     }
-    data['author'] = this.author;
-    data['title'] = this.title;
-    data['description'] = this.description;
-    data['url'] = this.url;
-    data['urlToImage'] = this.urlToImage;
-    data['publishedAt'] = this.publishedAt;
-    data['content'] = this.content;
+    data['author'] = author;
+    data['title'] = title;
+    data['description'] = description;
+    data['url'] = url;
+    data['urlToImage'] = urlToImage;
+    data['publishedAt'] = publishedAt;
+    data['content'] = content;
     return data;
   }
 }
@@ -87,9 +87,9 @@ class SourceModel {
   }
 
   Map<String, dynamic> toJson() {
-    final Map<String, dynamic> data = new Map<String, dynamic>();
-    data['id'] = this.id;
-    data['name'] = this.name;
+    final Map<String, dynamic> data = <String, dynamic>{};
+    data['id'] = id;
+    data['name'] = name;
     return data;
   }
 }

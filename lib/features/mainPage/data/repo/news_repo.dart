@@ -18,7 +18,7 @@ class NewsRepo {
       final response = await _dio.get(
         EndPoints.everything,
         queryParameters: {
-          'q': 'a',
+          'q': 'war',
           'apiKey': EndPoints.newsApiKey,
           'language': 'en',
           'sortBy': 'popularity',
@@ -26,11 +26,13 @@ class NewsRepo {
       );
 
       if (response.statusCode == 200) {
-        final newsResponse = FetchNewsResponseModel.fromJson(
+        final newsResponse = NewsResponseModel.fromJson(
           response.data as Map<String, dynamic>,
         );
+        print(newsResponse.articles);
         return Right(newsResponse.articles ?? []);
       } else {
+        print('Error: ${response.statusCode}');
         return Left('Error: ${response.statusCode}');
       }
     } catch (e) {

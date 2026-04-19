@@ -5,8 +5,9 @@ import '../../../../../core/utils/app_colors.dart';
 import '../../../data/models/news_model.dart';
 
 class NewsSlider extends StatefulWidget {
-  const NewsSlider({super.key, required this.articles});
+  const NewsSlider({super.key, required this.articles,required this.onTap,});
   final List<NewsArticleModel> articles;
+  final Function(NewsArticleModel article) onTap;
 
   @override
   State<NewsSlider> createState() => _NewsSliderState();
@@ -43,71 +44,79 @@ class _NewsSliderState extends State<NewsSlider> {
             itemCount: sliderItems.length,
             itemBuilder: (context, index) {
               final article = sliderItems[index];
-              return Padding(
-                padding: EdgeInsets.symmetric(horizontal: 20.w),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(16.r),
-                  child: Stack(
-                    alignment: Alignment.bottomCenter,
-                    children: [
-                      // Image
-                      article.urlToImage != null
-                          ? Image.network(
-                              article.urlToImage!,
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                              errorBuilder: (_, err, e) => Container(
+              return GestureDetector(
+                onTap: () {
+                  widget.onTap(article);
+                },
+                child: Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 20.w),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(16.r),
+                    child: Stack(
+                      alignment: Alignment.bottomCenter,
+                      children: [
+                        // Image
+                        article.urlToImage != null
+                            ? Image.network(
+                                article.urlToImage!,
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                                height: double.infinity,
+                                errorBuilder: (_, err, e) => Container(
+                                  color: Colors.grey[300],
+                                  child: const Icon(Icons.image, size: 64),
+                                ),
+                              )
+                            : Container(
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.image, size: 64),
                               ),
-                            )
-                          : Container(
-                              color: Colors.grey[300],
-                              child: const Icon(Icons.image, size: 64),
-                            ),
-                      // Caption bar
-                      Container(
-                        width: double.infinity,
-                        height: 66.h,
-                        padding: EdgeInsets.only(
-                          left: 14.w, right: 7.w, top: 9.h,
-                        ),
-                        decoration:
-                            BoxDecoration(color: AppColors.blackShade),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            SizedBox(
-                              width: 255.w,
-                              child: Text(
-                                article.title ?? '',
-                                overflow: TextOverflow.ellipsis,
-                                maxLines: 2,
-                                style: TextStyle(
-                                  color: AppColors.appWhite,
-                                  fontSize: 16.sp,
-                                  fontWeight: FontWeight.w500,
+                        // Caption bar
+                        Container(
+                          width: double.infinity,
+                          height: 66.h,
+                          padding: EdgeInsets.only(
+                            left: 14.w, right: 7.w, top: 9.h,
+                          ),
+                          decoration:
+                              BoxDecoration(color: AppColors.blackShade),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              SizedBox(
+                                width: 255.w,
+                                child: Text(
+                                  article.title ?? '',
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 2,
+                                  style: TextStyle(
+                                    color: AppColors.appWhite,
+                                    fontSize: 16.sp,
+                                    fontWeight: FontWeight.w500,
+                                  ),
                                 ),
                               ),
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.only(top: 4),
-                              child: Text(
-                                article.author ?? '',
-                                softWrap: true,
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12.sp,
-                                  fontWeight: FontWeight.w400,
+                              SizedBox(width: 12.w),
+                              Expanded(
+                                child: Text(
+
+                                  overflow: TextOverflow.clip,
+                                  maxLines: 1,
+                                  article.author ?? '',
+                                  softWrap: true,
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.w400,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               );
@@ -122,6 +131,7 @@ class _NewsSliderState extends State<NewsSlider> {
           children: List.generate(sliderItems.length, (index) {
             return GestureDetector(
               onTap: () {
+
                 _pageController.animateToPage(
                   index,
                   duration: const Duration(milliseconds: 500),

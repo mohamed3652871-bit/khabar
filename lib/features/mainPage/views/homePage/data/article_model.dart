@@ -3,8 +3,8 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:khabar/core/utils/app_colors.dart';
 
 
-class ArticleModel extends StatelessWidget {
-  const ArticleModel({super.key, required this.articleImage, required this.articleContent});
+class ArticleViewBox extends StatelessWidget {
+  const ArticleViewBox({super.key, required this.articleImage, required this.articleContent});
   final String articleImage ;
   final String articleContent ;
 

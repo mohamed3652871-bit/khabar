@@ -6,7 +6,7 @@ abstract class EndPoints {
 
   // News API
   static const String newsBaseUrl = 'https://newsapi.org/v2/';
-  static const String newsApiKey = '836086f05b344448a16dd41ee51c6320';
+  static const String newsApiKey = 'c5f596bf25794f18807f1ca54f9dcb56';
   static const String everything = 'everything';
   static const String topHeadlines = 'top-headlines';
 

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 abstract class AppColors {
-  // Existing
   static const Color appMianColor = Color(0xffE9EEFA);
   static const Color appWhite = Color(0xffFFFFFF);
   static const Color blueB = Color(0xff2249D4);
@@ -19,15 +18,12 @@ abstract class AppColors {
   static const Color articleBarA = Color(0xffF3EBE9);
   static const Color buttonsBlack = Colors.black;
 
-  // Unified / New Naming (added if missing)
   static const Color bgPrimary = Color(0xFFFFFFFF);
   static const Color brandBlue10 = Color(0xFFE9EEFA);
   static const Color brandBlue = Color(0xFF2D5BD0);
 
-  // Already موجود → خليته واحد بس
   static const Color textPrimary = Color(0xFF231F20);
 
-  // Added missing
   static const Color textSecondary = Color(0xFF6D6265);
   static const Color secondary = Color(0xFFA098AE);
   static const Color neutral80 = Color(0xFFFCE9EE);

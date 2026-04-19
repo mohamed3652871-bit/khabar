@@ -25,7 +25,6 @@ class _MapPageState extends State<MapPage> {
       child: Builder(
         builder: (context) {
           final cubit = MapCubit.get(context);
-
           return Scaffold(
             resizeToAvoidBottomInset: false,
             body: Container(
@@ -55,10 +54,12 @@ class _MapPageState extends State<MapPage> {
                         SizedBox(width: 12.w),
                         Expanded(
                           child: TextFormField(
+                            controller: cubit.searchController,
+
                             decoration: const InputDecoration(
                               isDense: true,
                               border: InputBorder.none,
-                              hintText: 'Search',
+                              hintText: 'Enter your Name',
                             ),
                           ),
                         ),
@@ -116,7 +117,9 @@ class _MapPageState extends State<MapPage> {
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      MainPage(latLng: cubit.selectedLatLng!),
+                                      MainPage(latLng: cubit.selectedLatLng!,
+                                        userName: cubit.searchController.text,
+                                      ),
                                 ),
                               );
 

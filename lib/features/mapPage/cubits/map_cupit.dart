@@ -4,6 +4,7 @@ import 'map_state.dart';
 import 'package:flutter/material.dart';
 
 class MapCubit extends Cubit<MapState> {
+  final TextEditingController searchController = TextEditingController();
   MapCubit() : super(InitMapState());
   Set<Marker> markers = {};
   LatLng initLatLng=LatLng(30.04855406300429, 31.22707262635231);

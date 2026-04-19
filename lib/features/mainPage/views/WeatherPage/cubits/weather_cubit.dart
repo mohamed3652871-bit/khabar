@@ -16,7 +16,8 @@ class WeatherCubit extends Cubit<WeatherState> {
   Future<void> fetchWeather({
     required double lat,
     required double lon,
-  }) async {
+  }) async
+  {
     emit(WeatherLoadingState());
     final result = await WeatherRepo().fetchWeather(lat: lat, lon: lon);
     result.fold(
