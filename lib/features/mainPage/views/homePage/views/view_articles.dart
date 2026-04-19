@@ -55,7 +55,6 @@ class _NewsSliderState extends State<NewsSlider> {
                     child: Stack(
                       alignment: Alignment.bottomCenter,
                       children: [
-                        // Image
                         article.urlToImage != null
                             ? Image.network(
                                 article.urlToImage!,
@@ -71,7 +70,6 @@ class _NewsSliderState extends State<NewsSlider> {
                                 color: Colors.grey[300],
                                 child: const Icon(Icons.image, size: 64),
                               ),
-                        // Caption bar
                         Container(
                           width: double.infinity,
                           height: 66.h,

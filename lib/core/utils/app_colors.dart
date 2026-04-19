@@ -23,6 +23,7 @@ abstract class AppColors {
   static const Color brandBlue = Color(0xFF2D5BD0);
 
   static const Color textPrimary = Color(0xFF231F20);
+  static const Color textBlue = Color(0xFF2D5BD0);
 
   static const Color textSecondary = Color(0xFF6D6265);
   static const Color secondary = Color(0xFFA098AE);

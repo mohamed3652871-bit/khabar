@@ -58,7 +58,7 @@ class ArticleViewBox extends StatelessWidget {
                   color: AppColors.buttonsBlack,
                   width: double.infinity,
                   height: 583.h,
-                  //height: 593.h,
+
                 ),
 
               ],

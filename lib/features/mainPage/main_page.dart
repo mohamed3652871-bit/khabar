@@ -13,9 +13,9 @@ import 'views/homePage/views/home_page.dart';
 
 class MainPage extends StatefulWidget {
   const MainPage({super.key, this.latLng, this.userName});
+
   final LatLng? latLng;
   final String? userName;
-
 
   @override
   State<MainPage> createState() => _MainPageState();
@@ -23,20 +23,6 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   int selectedIndex = 0;
-  late final List<Widget> pages;
-
-  @override
-  void initState() {
-    super.initState();
-    pages = [
-       HomeScreen(
-        name: widget.userName ??'',
-      ),
-      const ExplorePage(),
-      const BookMarksPage(),
-      WeatherPage(latLng: widget.latLng),
-    ];
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -48,22 +34,31 @@ class _MainPageState extends State<MainPage> {
         BlocProvider(
           create: (_) {
             final cubit = WeatherCubit();
+
             if (widget.latLng != null) {
               cubit.fetchWeather(
                 lat: widget.latLng!.latitude,
                 lon: widget.latLng!.longitude,
               );
             }
+
             return cubit;
           },
         ),
       ],
       child: Scaffold(
         backgroundColor: AppColors.appWhite,
+
         body: IndexedStack(
           index: selectedIndex,
-          children: pages,
+          children: [
+            HomeScreen(name: widget.userName ?? ''),
+            const ExplorePage(),
+            const BookMarksPage(),
+            WeatherPage(latLng: widget.latLng),
+          ],
         ),
+
         bottomNavigationBar: BottomBar(
           selectedIndex: selectedIndex,
           onTap: (index) {

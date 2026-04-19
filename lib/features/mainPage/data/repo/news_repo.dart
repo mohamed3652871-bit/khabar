@@ -13,15 +13,18 @@ class NewsRepo {
     ),
   );
 
-  Future<Either<String, List<NewsArticleModel>>> fetchNews() async {
+  Future<Either<String, List<NewsArticleModel>>> fetchNews(
+
+      ) async {
+
+
     try {
       final response = await _dio.get(
-        EndPoints.everything,
+        EndPoints.topHeadlines,
         queryParameters: {
-          'q': 'war',
           'apiKey': EndPoints.newsApiKey,
-          'language': 'en',
-          'sortBy': 'popularity',
+          'country': 'us',
+          'category': 'science',
         },
       );
 

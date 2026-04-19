@@ -1,75 +1,112 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
 import '../../../../../core/utils/app_colors.dart';
+import '../../../data/models/news_model.dart';
+import '../../../../articlePage/views/article_page.dart';
+import '../cubit/explore_cubit.dart';
+import '../cubit/explore_state.dart';
 
-
-
-
-class ExplorePage extends StatefulWidget {
+class ExplorePage extends StatelessWidget {
   const ExplorePage({super.key});
 
   @override
-  State<ExplorePage> createState() => _ExplorePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => ExploreCubit(),
+      child: const _ExploreView(),
+    );
+  }
 }
 
-class _ExplorePageState extends State<ExplorePage> {
-  int _selectedTab = 0;
-
-  final List<String> _categories = [
-    'Travel',
-    'Technology',
-    'Business',
-    'Entertainment',
-  ];
+class _ExploreView extends StatelessWidget {
+  const _ExploreView();
 
   @override
   Widget build(BuildContext context) {
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: AppColors.whiteB,
-      statusBarIconBrightness: Brightness.dark,
-    ));
-
     return Scaffold(
       backgroundColor: AppColors.appWhite,
-      body: Column(
-        children: [
-          _buildTopHeader(),
-          _buildCategoryTabs(),
-          SizedBox(height: 24.h,),
-
-          Expanded(child: _buildContent()),
-        ],
+      body: BlocBuilder<ExploreCubit, ExploreState>(
+        builder: (context, state) {
+          return Column(
+            children: [
+              _buildTopHeader(context),
+              _buildCategoryTabs(context),
+              SizedBox(height: 24.h),
+              Expanded(child: _buildContent(context, state)),
+            ],
+          );
+        },
       ),
     );
   }
 
+  Widget _buildTopHeader(BuildContext context) {
+    final cubit = context.read<ExploreCubit>();
+    final state = context.watch<ExploreCubit>().state;
+    final topPadding = MediaQuery.of(context).padding.top;
 
+    final isSearching = state is ExploreLoaded && state.isSearching;
 
-  Widget _buildTopHeader() {
     return Container(
-      height: 127.h,
       color: AppColors.appMianColor,
-      padding: const EdgeInsets.fromLTRB(32, 71, 20,12),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      padding: EdgeInsets.fromLTRB(32, topPadding + 16, 20, 12),
+      child: Row(
         children: [
-          Text(
-            'Explore',
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 32,
-              color: AppColors.textPrimary,
+          Expanded(
+            child: isSearching
+                ? TextField(
+              autofocus: true,
+              onChanged: cubit.onSearchChanged,
+              style: const TextStyle(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+              ),
+              decoration: const InputDecoration(
+                hintText: 'Search...',
+                hintStyle: TextStyle(color: AppColors.textPrimary),
+                border: InputBorder.none,
+              ),
+            )
+                : const Text(
+              'Explore',
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                fontSize: 32,
+                color: AppColors.textPrimary,
+              ),
             ),
           ),
-          Icon(Icons.search_outlined),
+          GestureDetector(
+            onTap: cubit.toggleSearch,
+            child: Icon(
+              isSearching ? Icons.close : Icons.search_outlined,
+              color: Colors.black,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildCategoryTabs() {
+  Widget _buildCategoryTabs(BuildContext context) {
+    final cubit = context.read<ExploreCubit>();
+    final state = context.watch<ExploreCubit>().state;
+
+    int selectedIndex = 0;
+
+    if (state is ExploreLoaded) {
+      selectedIndex = state.selectedCategory;
+    }
+
+    final categories = [
+      'Science',
+      'Technology',
+      'Business',
+      'Entertainment',
+    ];
+
     return Container(
       color: AppColors.appWhite,
       padding: const EdgeInsets.only(top: 16),
@@ -77,20 +114,26 @@ class _ExplorePageState extends State<ExplorePage> {
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.only(left: 32),
         child: Row(
-          children: List.generate(_categories.length, (i) {
-            final active = i == _selectedTab;
+          children: List.generate(categories.length, (i) {
+            final isSelected = selectedIndex == i;
+
             return GestureDetector(
-              onTap: () => setState(() => _selectedTab = i),
+              onTap: () => cubit.selectCategory(i),
               child: Container(
                 margin: const EdgeInsets.only(right: 12),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
-                  color: active ? AppColors.whiteB : Colors.transparent,
+                  color: isSelected
+                      ? AppColors.appMianColor
+                      : Colors.transparent,
                   border: Border.all(color: AppColors.whiteB),
                   borderRadius: BorderRadius.circular(56),
                 ),
                 child: Text(
-                  _categories[i],
+                  categories[i],
                   style: const TextStyle(
                     fontWeight: FontWeight.w700,
                     fontSize: 14,
@@ -105,84 +148,167 @@ class _ExplorePageState extends State<ExplorePage> {
     );
   }
 
-  Widget _buildContent() {
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
-      children: [
-        _buildFeatureCard(),
-        const SizedBox(height: 24),
-      ],
-    );
+  Widget _buildContent(BuildContext context, ExploreState state) {
+    if (state is ExploreLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (state is ExploreError) {
+      return Center(child: Text(state.message));
+    }
+
+    if (state is ExploreLoaded) {
+      final articles = state.articles;
+
+      if (articles.isEmpty) {
+        return const Center(child: Text('No articles found'));
+      }
+
+      return ListView.separated(
+        padding: const EdgeInsets.fromLTRB(32, 0, 32, 24),
+        itemCount: articles.length,
+        separatorBuilder: (_, __) => SizedBox(height: 20.h),
+        itemBuilder: (context, index) {
+          if (index == 0) {
+            return _buildFeaturedArticleCard(context, articles[index]);
+          }
+          return _buildArticleCard(context, articles[index]);
+        },
+      );
+    }
+
+    return const SizedBox();
   }
 
-  Widget _buildFeatureCard() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Image.network(
-          'https://picsum.photos/800/400',
-          height: 200,
-          width: double.infinity,
-          fit: BoxFit.cover,
-        ),
-        const SizedBox(height: 16),
-        const Text(
-          'Uncovering the Hidden Gems of the Amazon Forest',
-          style: TextStyle(
-            fontWeight: FontWeight.w600,
-            fontSize: 24,
+  Widget _buildFeaturedArticleCard(
+      BuildContext context,
+      NewsArticleModel article,
+      ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArticlePage(articleData: article),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSmallCard(article) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 24),
-      child: Row(
+        );
+      },
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(
-            child: Column(
-              children: [
-                Text(
-                  article.title,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: AppColors.textColorBlack,
-                    fontSize: 18.sp,
-                    fontWeight: FontWeight.w600,
-                  )
-                ),
-                Row(children: [
-                  CircleAvatar(
-                    radius: 12.r,
-                    backgroundImage: NetworkImage(article.avatarUrl),
-
-                  ),
-                  SizedBox(width: 8.w,),
-                  Text('${article.author} · ${article.date}',style: TextStyle(fontSize: 12.sp,fontWeight: FontWeight.w400,color: AppColors.textColor1),
-                  )
-                ],)
-              ],
+          if ((article.urlToImage ?? '').isNotEmpty)
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: Image.network(
+                article.urlToImage!,
+                height: 180.h,
+                width: double.infinity,
+                fit: BoxFit.cover,
+              ),
+            ),
+          SizedBox(height: 12.h),
+          Text(
+            article.title ?? '',
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontWeight: FontWeight.w700,
+              fontSize: 20,
             ),
           ),
-          const SizedBox(width: 16),
-          Container(
-            width: 112.w,
-            height: 80.h,
-            decoration: BoxDecoration(
-              color: Colors.grey,
-              borderRadius: BorderRadius.circular(8),
-              image: DecorationImage(image: NetworkImage(
-    article.imageUrl,
-    ),fit: BoxFit.cover)
-            ),
-            
-          ),
+          SizedBox(height: 8.h),
+          _buildAuthorRow(article),
         ],
       ),
     );
+  }
+
+  Widget _buildArticleCard(
+      BuildContext context,
+      NewsArticleModel article,
+      ) {
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArticlePage(articleData: article),
+          ),
+        );
+      },
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  article.title ?? '',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 15,
+                  ),
+                ),
+                SizedBox(height: 8.h),
+                _buildAuthorRow(article),
+              ],
+            ),
+          ),
+          if ((article.urlToImage ?? '').isNotEmpty) ...[
+            SizedBox(width: 12.w),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.network(
+                article.urlToImage!,
+                height: 72.h,
+                width: 82.w,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAuthorRow(NewsArticleModel article) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 13,
+          backgroundColor: Colors.grey.shade300,
+          child: const Icon(Icons.person, size: 14),
+        ),
+        SizedBox(width: 6.w),
+        Expanded(
+          child: Text(
+            '${article.author ?? 'Unknown'} · ${_formatDate(article.publishedAt)}',
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              fontSize: 12,
+              color: Colors.grey,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatDate(String? dateStr) {
+    if (dateStr == null) return '';
+    try {
+      final date = DateTime.parse(dateStr);
+      const months = [
+        'Jan','Feb','Mar','Apr','May','Jun',
+        'Jul','Aug','Sep','Oct','Nov','Dec'
+      ];
+      return '${months[date.month - 1]} ${date.day}, ${date.year}';
+    } catch (_) {
+      return dateStr;
+    }
   }
 }

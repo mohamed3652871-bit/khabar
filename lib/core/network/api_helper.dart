@@ -10,7 +10,7 @@ class APIHelper {
 
   // declaring dio
   static final Dio _dio = Dio(
-      BaseOptions(baseUrl: EndPoints.baseURL)
+      BaseOptions(baseUrl: EndPoints.newsBaseUrl)
   );
 
   static Future init() async {

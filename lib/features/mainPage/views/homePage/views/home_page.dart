@@ -7,6 +7,7 @@ import '../../../../articlePage/views/article_page.dart';
 import '../../../cubits/news_cubit.dart';
 import '../../../cubits/news_state.dart';
 import '../../../views/WeatherPage/cubits/weather_cubit.dart';
+import '../../WeatherPage/cubits/weather_state.dart';
 import 'view_articles.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -26,9 +27,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final weatherCubit = context.watch<WeatherCubit>();
-    final weatherState = weatherCubit.weather?.weatherMain ?? '—';
-    final temperature = weatherCubit.weather?.temp.round();
+    final cubit = context.watch<WeatherCubit>();
+    final state = cubit.state;
+    String weatherState = '—';
+    int? temperature;
+
+    if (state is WeatherSuccessState) {
+      weatherState = state.weather.weatherMain;
+      temperature = state.weather.temp.round();
+    }
 
     return BlocProvider(
       create: (_) => NewsCubit()..fetchNews(),
@@ -81,7 +88,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       const Spacer(),
                       Row(
                         children: [
-                          const Icon(Icons.sunny, color: Colors.amber),
+                          Icon(
+                            context.read<WeatherCubit>().getWeatherIcon(
+                              weatherState,
+                            ),
+                            color: context.read<WeatherCubit>().getWeatherColor(
+                              weatherState,
+                            ),
+                          ),
                           SizedBox(width: 8.w),
                           Text(
                             weatherState,
@@ -139,19 +153,17 @@ class _HomeScreenState extends State<HomeScreen> {
                           SizedBox(height: 24.h),
 
                           NewsSlider(
-                              articles: articles,
-                              onTap: (article) {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) => ArticlePage(
-                                      articleData: article,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-
+                            articles: articles,
+                            onTap: (article) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      ArticlePage(articleData: article),
+                                ),
+                              );
+                            },
+                          ),
 
                           // Most Popular header
                           Padding(
@@ -252,7 +264,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                                         color: Colors.grey[300],
                                                         child: const Icon(
                                                           Icons.image,
-                                                          size: 48,
+                                                          size: 230,
                                                         ),
                                                       ),
                                               ),
@@ -272,6 +284,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                               SizedBox(height: 4.h),
                                               Text(
                                                 article.source?.name ?? '',
+                                                overflow: TextOverflow.ellipsis,
+                                                maxLines: 1,
                                                 style: TextStyle(
                                                   color: AppColors.textColor1,
                                                   fontSize: 14.sp,
